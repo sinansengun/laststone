@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: d0e80bcc32bb10d4c8ad7b84accf3b3b
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - buttonSound: {fileID: 8300000, guid: 7fada0b71d364634ba15a2269d9a47b8, type: 3}
+  - swipeSound: {fileID: 8300000, guid: 7fada0b71d364634ba15a2269d9a47b8, type: 3}
+  - startSound: {fileID: 8300000, guid: 7cb91beeb4bd63c4ea48f7e8494e277b, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
