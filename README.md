@@ -7,3 +7,5 @@ The goal is to remove a stone by swiping over it with another stone horizontally
 A ranking system have also been added to challenge your friends, colleagues and circles on Last Stone Puzzle.
 
 Optimized for Intel x86 mobile devices
+
+https://play.google.com/store/apps/details?id=com.cufica.laststone
