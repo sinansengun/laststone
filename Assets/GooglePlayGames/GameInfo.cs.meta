@@ -1,8 +1,16 @@
 fileFormatVersion: 2
-guid: faab9a6b091b447f2ae8ab0604f41329
+guid: a722d413080904cc1bd07f4db21e1af1
+labels:
+- gvh
+- gvh_version-0.9.50
+timeCreated: 1435699550
+licenseType: Pro
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
   defaultReferences: []
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
+  assetBundleName: 
+  assetBundleVariant: 

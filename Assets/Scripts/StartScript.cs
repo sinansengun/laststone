@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 using GooglePlayGames;
+using UnityEngine.SceneManagement;
 
 public class StartScript : MonoBehaviour
 {
-    public AudioScript backgroundAudio;
-    public MessageScript messageScript;
-    public GameObject messagePanel;
-    public GameObject settingsPanel;
-    public GameObject tutorialPanel;
-    public GameObject backgroundMusicPrefab;
+    public AudioScript BackgroundAudio;
+    public MessageScript MessageScript;
+    public GameObject MessagePanel;
+    public GameObject SettingsPanel;
+    public GameObject TutorialPanel;
+    public GameObject BackgroundMusicPrefab;
 
     private void Start()
     {
@@ -17,10 +18,10 @@ public class StartScript : MonoBehaviour
         if (backgroundMusic == null) {
 
             var position = Camera.main.gameObject.transform.position;
-            Instantiate(backgroundMusicPrefab, position, Quaternion.identity);
+            Instantiate(BackgroundMusicPrefab, position, Quaternion.identity);
         }
 
-        backgroundAudio.PlayLoadSound2();
+        BackgroundAudio.PlayLoadSound2();
         SocialScript.Activate();
     }
 
@@ -29,11 +30,11 @@ public class StartScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape)) {
 
             if (!IsAnyPanelActive()) {
-                backgroundAudio.PlayButtonSound();
+                BackgroundAudio.PlayButtonSound();
                 ShowQuitMessage();
             }
             else {
-                backgroundAudio.PlayButtonNegativeSound();
+                BackgroundAudio.PlayButtonNegativeSound();
                 SetPanelToPassive();
             }
         }
@@ -41,7 +42,7 @@ public class StartScript : MonoBehaviour
 
     public void StartButton_Click()
     {
-        Application.LoadLevel("Main");
+        SceneManager.LoadScene("Main");
     }
 
     public void ExitButton_Click()
@@ -52,21 +53,21 @@ public class StartScript : MonoBehaviour
     public void SocialButton_Click()
     {
         if (SocialScript.Authenticated) {
-            messageScript.Show("Are you sure want to sign out?", MessageBoxButton.YesNo, delegate(MessageBoxResult result) {
+            MessageScript.Show("Are you sure want to sign out?", MessageBoxButton.YesNo, delegate(MessageBoxResult result) {
                 if (result == MessageBoxResult.Yes) {
-                    SocialScript.SignOut();                    
+                    SocialScript.SignOut();
                 }
             });
         }
         else {
 
-            SocialScript.Authenticate();                         
+            SocialScript.Authenticate();
         }
     }
 
     public void SettingsButton_OnClick()
     {
-        var settingsScript = settingsPanel.GetComponent<SettingsScript>();
+        var settingsScript = SettingsPanel.GetComponent<SettingsScript>();
         if (settingsScript != null) {
             settingsScript.Show();
         }
@@ -76,7 +77,7 @@ public class StartScript : MonoBehaviour
     {
         SetPanelToPassive();
 
-        var tutorialScript = tutorialPanel.GetComponent<TutorialScript>();
+        var tutorialScript = TutorialPanel.GetComponent<TutorialScript>();
         if (tutorialScript != null) {
             tutorialScript.Show();
         }
@@ -94,8 +95,8 @@ public class StartScript : MonoBehaviour
 
     private bool IsAnyPanelActive()
     {
-        if (settingsPanel.activeInHierarchy ||
-            tutorialPanel.activeInHierarchy) {
+        if (SettingsPanel.activeInHierarchy ||
+            TutorialPanel.activeInHierarchy) {
             return true;
         }
         return false;
@@ -103,7 +104,7 @@ public class StartScript : MonoBehaviour
 
     public void ShowQuitMessage()
     {
-        messageScript.Show("Are you sure want to quit?", MessageBoxButton.YesNo, delegate(MessageBoxResult result) {
+        MessageScript.Show("Are you sure want to quit?", MessageBoxButton.YesNo, delegate(MessageBoxResult result) {
             if (result == MessageBoxResult.Yes) {
                 Application.Quit();
             }
@@ -112,8 +113,8 @@ public class StartScript : MonoBehaviour
 
     private void SetPanelToPassive()
     {
-        messagePanel.SetActive(false);
-        settingsPanel.SetActive(false);
-        tutorialPanel.SetActive(false);
+        MessagePanel.SetActive(false);
+        SettingsPanel.SetActive(false);
+        TutorialPanel.SetActive(false);
     }
 }

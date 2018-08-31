@@ -3,31 +3,34 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BoardScript : MonoBehaviour
 {
-    private BannerView bannerViewAd;
-    private InterstitialAd interstitialAd;
+    private BannerView _bannerViewAd;
+    private InterstitialAd _interstitialAd;
 
-    private const int boardSize = 9;
-    private int currentScore = 0;
-    private int pawnCount = 0;
-    private bool swipeEnabled = true;
-    private Stopwatch movementTimer;
-    private Transform[,] board;
-    private Color[] boardColors;
+    private const int BoardSize = 9;
 
-    public AudioScript backgroundAudio;
-    public GameObject currentScoreText;
-    public GameObject pausePanel;
-    public GameObject settingsPanel;
-    public GameObject completePanel;
-    public GameObject messagePanel;
-    public GameObject tutorialPanel;
-    public Transform pawnStoneShadow;
-    public Transform pawnStone;
-    public int maxMovementScore;
-    public int maxMovementTime;
+    private int _currentScore;
+    private int _pawnCount;
+    private bool _swipeEnabled = true;
+    private Stopwatch _movementTimer;
+    private Transform[,] _board;
+    private Color[] _boardColors;
+
+    public AudioScript BackgroundAudio;
+    public GameObject CurrentScoreText;
+    public GameObject PausePanel;
+    public GameObject SettingsPanel;
+    public GameObject CompletePanel;
+    public GameObject MessagePanel;
+    public GameObject TutorialPanel;
+    //public GameObject GamePanel;
+    public Transform PawnStoneShadow;
+    public Transform PawnStone;
+    public int MaxMovementScore;
+    public int MaxMovementTime;
 
     private void Start()
     {
@@ -41,11 +44,11 @@ public class BoardScript : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape)) {
 
             if (!IsAnyPanelActive()) {
-                backgroundAudio.PlayButtonSound();
+                BackgroundAudio.PlayButtonSound();
                 PauseGame();
             }
             else {
-                backgroundAudio.PlayButtonNegativeSound();
+                BackgroundAudio.PlayButtonNegativeSound();
                 SetPanelToPassive();
             }
         }
@@ -53,39 +56,36 @@ public class BoardScript : MonoBehaviour
 
     private void InitializeBoard()
     {
-        board = new Transform[boardSize, boardSize];
+        _board = new Transform[BoardSize, BoardSize];
 
-        for (int x = 0; x < boardSize; x++)
-            for (int y = 0; y < boardSize; y++) {
+        for (int x = 0; x < BoardSize; x++)
+            for (int y = 0; y < BoardSize; y++) {
 
                 var positionX = x - 4;
                 var positionY = y - 5;
-                Instantiate(pawnStoneShadow, new Vector3(positionX, positionY, 0), Quaternion.identity);
+                var shadowObject = Instantiate(PawnStoneShadow);
+                shadowObject.SetPositionAndRotation(new Vector3(positionX, positionY, -1), Quaternion.identity);
 
-                var pivot = (int)(boardSize / 2);
+                const int pivot = BoardSize / 2;
                 if (pivot != x || pivot != y) {
                     InitializePawn(x, y, .2f);
                 }
             }
 
-        backgroundAudio.PlayLoadSound();
-        movementTimer.Start();
+        BackgroundAudio.PlayLoadSound();
+        _movementTimer.Start();
     }
 
     private void InitializeObjects()
     {
-        movementTimer = new Stopwatch();
-        boardColors = new Color[10]{
-            new Color(1f, .75f, .75f),
-            new Color(.75f, .75f, 1f),
-            new Color(.75f, .75f, .9f),
-            new Color(.75f, 1f, .75f),
-            new Color(1f, .75f, .75f),
-            new Color(1f, 1f, .75f),
-            new Color(.75f, 1f, 1f),
-            new Color(1f, .75f, 1f),
-            new Color(.75f, .75f, .75f),
-            new Color(.9f, .9f, .9f)
+        _movementTimer = new Stopwatch();
+        _boardColors = new Color[6]{
+            new Color(.5f, 1f, 1f, .9f),
+            new Color(.5f, .95f, 1f, .9f),
+            new Color(.5f, .9f, 1f, .9f),
+            new Color(.5f, .85f, 1f, .9f),
+            new Color(.5f, .8f, 1f, .9f),
+            new Color(.5f, .75f, 1f, .9f),
         };
     }
 
@@ -94,20 +94,21 @@ public class BoardScript : MonoBehaviour
         var positionX = x - 4;
         var positionY = y - 5;
 
-        var pawnObject = Instantiate(pawnStone, new Vector3(positionX, positionY, -1), Quaternion.identity);
-        var pawnTransform = (Transform)pawnObject;
-        var pawn = pawnTransform.gameObject.GetComponent<PawnScript>();
+        var pawnObject = Instantiate(PawnStone);
+        pawnObject.SetPositionAndRotation(new Vector3(positionX, positionY, -1), Quaternion.identity);
+
+        var pawn = pawnObject.gameObject.GetComponent<PawnScript>();
         pawn.pointX = x;
         pawn.pointY = y;
 
-        var pawnColor = boardColors[UnityEngine.Random.Range(0, boardColors.Length - 1)];
-        var sprite = pawnTransform.gameObject.GetComponent<SpriteRenderer>();
+        var pawnColor = _boardColors[UnityEngine.Random.Range(0, _boardColors.Length - 1)];
+        var sprite = pawnObject.gameObject.GetComponent<SpriteRenderer>();
         sprite.color = pawnColor;
 
-        board[x, y] = pawnTransform;
-        pawnCount++;
+        _board[x, y] = pawnObject;
+        _pawnCount++;
 
-        ShakePawn(pawnTransform, .2f, amount);
+        ShakePawn(pawnObject, .2f, amount);
     }
 
     private void StartGame()
@@ -124,16 +125,16 @@ public class BoardScript : MonoBehaviour
         AdInterstitialShow();
         StartCoroutine(AdInterstitialLoad());
 
-        var pivot = (int)(boardSize / 2);
-        var pivotPawn = board[pivot, pivot];
+        var pivot = (int)(BoardSize / 2);
+        var pivotPawn = _board[pivot, pivot];
         if (pivotPawn != null) {
             DestroyPawn(pivotPawn);
         }
 
-        for (int x = 0; x < boardSize; x++)
-            for (int y = 0; y < boardSize; y++) {
+        for (int x = 0; x < BoardSize; x++)
+            for (int y = 0; y < BoardSize; y++) {
 
-                if ((board[x, y] == null) &&
+                if ((_board[x, y] == null) &&
                     (pivot != x || pivot != y)) {
 
                     yield return new WaitForSeconds(.01f);
@@ -141,22 +142,22 @@ public class BoardScript : MonoBehaviour
                 }
             }
 
-        var scoreScript = currentScoreText.GetComponent<ScoreScript>();
+        var scoreScript = CurrentScoreText.GetComponent<ScoreScript>();
         if (scoreScript != null) {
             scoreScript.SetScore(0);
         }
 
-        currentScore = 0;
-        movementTimer.Reset();
-        movementTimer.Start();
-        backgroundAudio.PlayLoadSound();
+        _currentScore = 0;
+        _movementTimer.Reset();
+        _movementTimer.Start();
 
+        BackgroundAudio.PlayLoadSound();
         SetSwipeEnabled(true);
     }
 
     private void PauseGame()
     {
-        var pauseScript = pausePanel.GetComponent<PauseScript>();
+        var pauseScript = PausePanel.GetComponent<PauseScript>();
         if (pauseScript != null) {
             pauseScript.Show();
         }
@@ -172,10 +173,10 @@ public class BoardScript : MonoBehaviour
 
     private bool CheckIsFinished()
     {
-        for (int x = 0; x < boardSize; x++)
-            for (int y = 0; y < boardSize; y++) {
+        for (int x = 0; x < BoardSize; x++)
+            for (int y = 0; y < BoardSize; y++) {
 
-                var pawn = board[x, y];
+                var pawn = _board[x, y];
                 if (pawn == null) {
                     continue;
                 }
@@ -189,28 +190,28 @@ public class BoardScript : MonoBehaviour
 
                 if (pawnX - 2 >= 0) {
 
-                    nearPawn = board[pawnX - 1, pawnY];
-                    near2Pawn = board[pawnX - 2, pawnY];
+                    nearPawn = _board[pawnX - 1, pawnY];
+                    near2Pawn = _board[pawnX - 2, pawnY];
 
                     if (nearPawn != null && near2Pawn == null) {
                         return false;
                     }
                 }
 
-                if (pawnX + 2 < boardSize) {
+                if (pawnX + 2 < BoardSize) {
 
-                    nearPawn = board[pawnX + 1, pawnY];
-                    near2Pawn = board[pawnX + 2, pawnY];
+                    nearPawn = _board[pawnX + 1, pawnY];
+                    near2Pawn = _board[pawnX + 2, pawnY];
 
                     if (nearPawn != null && near2Pawn == null) {
                         return false;
                     }
                 }
 
-                if (pawnY + 2 < boardSize) {
+                if (pawnY + 2 < BoardSize) {
 
-                    nearPawn = board[pawnX, pawnY + 1];
-                    near2Pawn = board[pawnX, pawnY + 2];
+                    nearPawn = _board[pawnX, pawnY + 1];
+                    near2Pawn = _board[pawnX, pawnY + 2];
 
                     if (nearPawn != null && near2Pawn == null) {
                         return false;
@@ -219,8 +220,8 @@ public class BoardScript : MonoBehaviour
 
                 if (pawnY - 2 >= 0) {
 
-                    nearPawn = board[pawnX, pawnY - 1];
-                    near2Pawn = board[pawnX, pawnY - 2];
+                    nearPawn = _board[pawnX, pawnY - 1];
+                    near2Pawn = _board[pawnX, pawnY - 2];
 
                     if (nearPawn != null && near2Pawn == null) {
                         return false;
@@ -234,7 +235,7 @@ public class BoardScript : MonoBehaviour
     private void SwapIfNec(Transform selectedPawn, SwipeParameter swipeParameter)
     {
         var swipeDirection = swipeParameter.direction;
-        if (!swipeEnabled || !(selectedPawn != null && swipeDirection != SwipeDirection.None)) {
+        if (!_swipeEnabled || !(selectedPawn != null && swipeDirection != SwipeDirection.None)) {
             return;
         }
 
@@ -255,28 +256,28 @@ public class BoardScript : MonoBehaviour
                 return;
             }
 
-            nearPawn = board[pawnX - 1, pawnY];
-            near2Pawn = board[near2PawnX = pawnX - 2, near2PawnY = pawnY];
+            nearPawn = _board[pawnX - 1, pawnY];
+            near2Pawn = _board[near2PawnX = pawnX - 2, near2PawnY = pawnY];
         }
         else if (swipeDirection == SwipeDirection.Right) {
 
-            if (pawnX + 2 >= boardSize) {
+            if (pawnX + 2 >= BoardSize) {
                 PunchPawn(selectedPawn);
                 return;
             }
 
-            nearPawn = board[pawnX + 1, pawnY];
-            near2Pawn = board[near2PawnX = pawnX + 2, near2PawnY = pawnY];
+            nearPawn = _board[pawnX + 1, pawnY];
+            near2Pawn = _board[near2PawnX = pawnX + 2, near2PawnY = pawnY];
         }
         else if (swipeDirection == SwipeDirection.Up) {
 
-            if (pawnY + 2 >= boardSize) {
+            if (pawnY + 2 >= BoardSize) {
                 PunchPawn(selectedPawn);
                 return;
             }
 
-            nearPawn = board[pawnX, pawnY + 1];
-            near2Pawn = board[near2PawnX = pawnX, near2PawnY = pawnY + 2];
+            nearPawn = _board[pawnX, pawnY + 1];
+            near2Pawn = _board[near2PawnX = pawnX, near2PawnY = pawnY + 2];
         }
         else if (swipeDirection == SwipeDirection.Down) {
 
@@ -285,8 +286,8 @@ public class BoardScript : MonoBehaviour
                 return;
             }
 
-            nearPawn = board[pawnX, pawnY - 1];
-            near2Pawn = board[near2PawnX = pawnX, near2PawnY = pawnY - 2];
+            nearPawn = _board[pawnX, pawnY - 1];
+            near2Pawn = _board[near2PawnX = pawnX, near2PawnY = pawnY - 2];
         }
 
         if (nearPawn != null &&
@@ -303,9 +304,9 @@ public class BoardScript : MonoBehaviour
         var selectedPawnScript = selectedPawn.gameObject.GetComponent<PawnScript>();
         var nearPawnScript = nearPawn.gameObject.GetComponent<PawnScript>();
 
-        board[selectedPawnScript.pointX, selectedPawnScript.pointY] = null;
-        board[nearPawnScript.pointX, nearPawnScript.pointY] = null;
-        board[near2PawnX, near2PawnY] = selectedPawn;
+        _board[selectedPawnScript.pointX, selectedPawnScript.pointY] = null;
+        _board[nearPawnScript.pointX, nearPawnScript.pointY] = null;
+        _board[near2PawnX, near2PawnY] = selectedPawn;
 
         selectedPawnScript.pointX = near2PawnX;
         selectedPawnScript.pointY = near2PawnY;
@@ -317,54 +318,39 @@ public class BoardScript : MonoBehaviour
 
         if (CheckIsFinished()) {
 
-            var completeScript = completePanel.GetComponent<CompleteScript>();
+            var completeScript = CompletePanel.GetComponent<CompleteScript>();
             if (completeScript != null) {
-                completeScript.Show(pawnCount, currentScore);
+                completeScript.Show(_pawnCount, _currentScore);
             }
         }
     }
 
     private void CalculateScore()
     {
-        var movementTime = movementTimer.Elapsed.Seconds <= maxMovementTime ?
-            movementTimer.Elapsed.Seconds :
-            maxMovementTime - 1;
+        var movementTime = _movementTimer.Elapsed.Seconds <= MaxMovementTime ?
+            _movementTimer.Elapsed.Seconds :
+            MaxMovementTime - 1;
 
-        var movementScore = (int)(((maxMovementTime - movementTime) / (double)maxMovementTime) * maxMovementScore);
-        currentScore += movementScore;
+        var movementScore = (int)(((MaxMovementTime - movementTime) / (double)MaxMovementTime) * MaxMovementScore);
+        _currentScore += movementScore;
 
-        movementTimer.Reset();
-        movementTimer.Start();
+        _movementTimer.Reset();
+        _movementTimer.Start();
 
-        var scoreScript = currentScoreText.GetComponent<ScoreScript>();
+        var scoreScript = CurrentScoreText.GetComponent<ScoreScript>();
         if (scoreScript != null) {
-            scoreScript.SetScore(currentScore);
+            scoreScript.SetScore(_currentScore);
         }
     }
 
-    private void PunchPawn(Transform pawn)
+    private static void PunchPawn(Transform pawn)
     {
         pawn.gameObject.PunchScale(new Vector3(.5f, .5f), .5f, 0);
     }
 
-    private void ShakePawn(Transform pawn)
-    {
-        pawn.gameObject.ShakeScale(new Vector3(.5f, .5f), .5f, 0);
-    }
-
-    private void ShakePawn(Transform pawn, float time)
-    {
-        pawn.gameObject.ShakeScale(new Vector3(.5f, .5f), time, 0);
-    }
-
-    private void ShakePawn(Transform pawn, float amount, float time)
+    private static void ShakePawn(Transform pawn, float amount, float time)
     {
         pawn.gameObject.ShakeScale(new Vector3(amount, amount), time, 0);
-    }
-
-    private void ScalePawn(Transform pawn, float amount, float time)
-    {
-        pawn.gameObject.ScaleTo(new Vector3(amount, amount), time, 0);
     }
 
     private void MovePawn(Transform selectedPawn, int x, int y)
@@ -374,33 +360,33 @@ public class BoardScript : MonoBehaviour
 
         selectedPawn.gameObject.PunchScale(new Vector3(.5f, .5f), .5f, 0);
         selectedPawn.gameObject.MoveTo(new Vector3(positionX, positionY, -1), .5f, 0);
-        backgroundAudio.PlaySwipeSound();
+        BackgroundAudio.PlaySwipeSound();
     }
 
     private void DestroyPawn(Transform pawnTransform)
     {
         Destroy(pawnTransform.gameObject);
-        pawnCount--;
+        _pawnCount--;
     }
 
     private void SetPanelToPassive()
     {
-        var pauseScript = pausePanel.GetComponent<PauseScript>();
+        var pauseScript = PausePanel.GetComponent<PauseScript>();
         if (pauseScript != null) {
             pauseScript.Close();
         }
 
-        var settingsScript = settingsPanel.GetComponent<SettingsScript>();
+        var settingsScript = SettingsPanel.GetComponent<SettingsScript>();
         if (settingsScript != null) {
             settingsScript.Close();
         }
 
-        var completeScript = completePanel.GetComponent<CompleteScript>();
+        var completeScript = CompletePanel.GetComponent<CompleteScript>();
         if (completeScript != null) {
             completeScript.Close();
         }
 
-        var tutorialScript = tutorialPanel.GetComponent<TutorialScript>();
+        var tutorialScript = TutorialPanel.GetComponent<TutorialScript>();
         if (tutorialScript != null) {
             tutorialScript.Close();
         }
@@ -408,9 +394,9 @@ public class BoardScript : MonoBehaviour
 
     private bool IsAnyPanelActive()
     {
-        if (settingsPanel.activeInHierarchy ||
-            completePanel.activeInHierarchy ||
-            tutorialPanel.activeInHierarchy) {
+        if (SettingsPanel.activeInHierarchy ||
+            CompletePanel.activeInHierarchy ||
+            TutorialPanel.activeInHierarchy) {
             return true;
         }
         return false;
@@ -418,7 +404,7 @@ public class BoardScript : MonoBehaviour
 
     private void SetSwipeEnabled(bool enable)
     {
-        swipeEnabled = enable;
+        _swipeEnabled = enable;
     }
 
     private void PawnScript_OnPawnSwiped(Transform selectedPawn, SwipeParameter swipeParameter)
@@ -428,7 +414,7 @@ public class BoardScript : MonoBehaviour
 
     public void HomeButton_Click()
     {
-        Application.LoadLevel("Start");
+        SceneManager.LoadScene("Start");
     }
 
     public void ResumeButton_Click()
@@ -449,7 +435,7 @@ public class BoardScript : MonoBehaviour
 
     public void SettingsButton_OnClick()
     {
-        var settingsScript = settingsPanel.GetComponent<SettingsScript>();
+        var settingsScript = SettingsPanel.GetComponent<SettingsScript>();
         if (settingsScript != null) {
             settingsScript.Show();
         }
@@ -463,7 +449,7 @@ public class BoardScript : MonoBehaviour
 
     public void ShowTutorial()
     {
-        var tutorialScript = tutorialPanel.GetComponent<TutorialScript>();
+        var tutorialScript = TutorialPanel.GetComponent<TutorialScript>();
         if (tutorialScript != null) {
             tutorialScript.Show();
         }
@@ -471,11 +457,11 @@ public class BoardScript : MonoBehaviour
 
     public bool ShowTutorialIfNec(Action onClosed)
     {
-        var tutorialScript = tutorialPanel.GetComponent<TutorialScript>();
+        var tutorialScript = TutorialPanel.GetComponent<TutorialScript>();
         if (tutorialScript != null &&
             tutorialScript.ShowInitially(onClosed)) {
 
-            backgroundAudio.PlayLoadSound3();
+            BackgroundAudio.PlayLoadSound3();
             return true;
         }
         return false;
@@ -485,46 +471,46 @@ public class BoardScript : MonoBehaviour
     {
         yield return new WaitForSeconds(5);
 
-        bannerViewAd = new BannerView(Consts.BannerIdentifier, AdSize.SmartBanner, AdPosition.Bottom);
-        bannerViewAd.LoadAd(new AdRequest.Builder().Build());
+        _bannerViewAd = new BannerView(Consts.BannerIdentifier, AdSize.SmartBanner, AdPosition.Bottom);
+        _bannerViewAd.LoadAd(new AdRequest.Builder().Build());
 
         yield return new WaitForSeconds(10);
 
-        interstitialAd = new InterstitialAd(Consts.InterstitialIdentifier);
-        interstitialAd.LoadAd(new AdRequest.Builder().Build());
+        _interstitialAd = new InterstitialAd(Consts.InterstitialIdentifier);
+        _interstitialAd.LoadAd(new AdRequest.Builder().Build());
     }
 
     private IEnumerator AdInterstitialLoad()
     {
         yield return new WaitForSeconds(10);
 
-        if (interstitialAd == null) {
-            interstitialAd = new InterstitialAd(Consts.InterstitialIdentifier);
+        if (_interstitialAd == null) {
+            _interstitialAd = new InterstitialAd(Consts.InterstitialIdentifier);
         }
 
-        if (interstitialAd.IsLoaded() == false) {
-            interstitialAd.LoadAd(new AdRequest.Builder().Build());
+        if (_interstitialAd.IsLoaded() == false) {
+            _interstitialAd.LoadAd(new AdRequest.Builder().Build());
         }
     }
 
     private void AdInterstitialShow()
     {
-        if (interstitialAd != null &&
-            interstitialAd.IsLoaded()) {
-            interstitialAd.Show();
+        if (_interstitialAd != null &&
+            _interstitialAd.IsLoaded()) {
+            _interstitialAd.Show();
         }
     }
 
     private void AdDestroy()
     {
-        if (bannerViewAd != null) {
-            bannerViewAd.Destroy();
-            bannerViewAd = null;
+        if (_bannerViewAd != null) {
+            _bannerViewAd.Destroy();
+            _bannerViewAd = null;
         }
 
-        if (interstitialAd != null) {
-            interstitialAd.Destroy();
-            interstitialAd = null;
+        if (_interstitialAd != null) {
+            _interstitialAd.Destroy();
+            _interstitialAd = null;
         }
     }
 

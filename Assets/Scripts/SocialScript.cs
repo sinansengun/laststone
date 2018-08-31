@@ -1,8 +1,4 @@
 ﻿using GooglePlayGames;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 public class SocialScript
@@ -23,22 +19,22 @@ public class SocialScript
 
     public static void Authenticate()
     {
-        Social.localUser.Authenticate((bool success) => {
+        Social.localUser.Authenticate(success => {
 
             if (!success) return;
 
-            SocialScript.ReportBestScore();
+            ReportBestScore();
         });
     }
 
     public static void AuthenticateAndShow()
     {
-        Social.localUser.Authenticate((bool success) => {
+        Social.localUser.Authenticate(success => {
 
             if (!success) return;
 
-            SocialScript.ShowLeaderboard();
-            SocialScript.ReportBestScore();
+            ShowLeaderboard();
+            ReportBestScore();
         });
     }
 
@@ -51,7 +47,7 @@ public class SocialScript
     {
         if (!Authenticated) return;
 
-        Social.ReportScore(score, Consts.LeaderBoardIdentifier, (bool success) => { });
+        Social.ReportScore(score, Consts.LeaderBoardIdentifier, success => { });
     }
 
     public static void ReportBestScore()

@@ -1,0 +1,4 @@
+lastUpgrade=00950
+proj.AppId=878039444823
+android.SetupDone=true
+proj.pluginVersion=0.9.50
